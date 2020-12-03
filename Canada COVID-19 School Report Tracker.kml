@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Canada COVID-19 School Report Tracker</name>
+    <description>COVID-19 cases and outbreaks in Canadian schools</description>
+    <NetworkLink>
+      <name>Canada COVID-19 School Report Tracker</name>
+      <Link>
+        <href><![CDATA[https://www.google.com/maps/d/kml?forcekml=1&mid=1blA_H3Hv5S9Ii_vyudgDk-j6SfJQil9S]]></href>
+      </Link>
+    </NetworkLink>
+  </Document>
+</kml>
