@@ -7,11 +7,9 @@
 # Install packages
 #install.packages("tidyverse")
 #install.packages("plotly")
-#install.packages("manipulateWidget")
 
 # Load packages
 library(shiny)
-library(manipulateWidget)
 library(tidyverse)
 library(data.table)
 library(plotly)
@@ -33,7 +31,7 @@ ui <- fluidPage(
                                 label = "Year",
                                 choices = list("2020", 
                                                "2019",
-                                               "2018", 
+                                               "2018",
                                                "2017",
                                                "2016"),
                                 selected = "2020"),
