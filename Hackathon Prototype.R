@@ -16,12 +16,12 @@ library(plotly)
 
 # Load data by reading files
 lf <- select(read.csv("LabourForce.csv", check.names = FALSE), c(1, 4:10)) # Labour Force data for 15+, all estimates in percentages for year 2019
-house <- select(read.csv("Housing.csv", check.names = FALSE), c(1, 3:9)) # All semi-detached houses
-health <- read.csv("HealthIndicators.csv", check.names = FALSE)
+#house <- select(read.csv("Housing.csv", check.names = FALSE), c(1, 3:9)) # All semi-detached houses
+#health <- read.csv("HealthIndicators.csv", check.names = FALSE)
 
 # Rename the columns
-setnames(house, colnames(house), c("Sex", "Total - Age", "0-14 years", "15-19 years", "20-24 years",
-                                   "% 0-14 years", "% 15-19 years", "% 20-24 years"))
+#setnames(house, colnames(house), c("Sex", "Total - Age", "0-14 years", "15-19 years", "20-24 years",
+#                                   "% 0-14 years", "% 15-19 years", "% 20-24 years"))
 
 # Define UI ----
 ui <- fluidPage(
@@ -73,7 +73,7 @@ ui <- fluidPage(
                                                "Northwest Territories",
                                                "Yukon",
                                                "Ottawa",
-                                               "St. John’s",
+                                               "St. John's",
                                                "Halifax",
                                                "Fredericton",
                                                "Charlottetown",
@@ -175,7 +175,7 @@ ui <- fluidPage(
                    )
                  ),
                  htmlOutput("covOBMap"),
-                 tags$hr()
+                 hr()
                )
              )
     ),
@@ -185,19 +185,46 @@ ui <- fluidPage(
              sidebarLayout(
                sidebarPanel(width = 2,
                  
-                 
-                 
+                 h4("Table of Contents"),
+                 br(),
+                 a(href = "#schoolPolicies", "School Policies"),
+                 br(),
+                 a(href = "#Parents", "Parents"),
+                 br(),
+                 a(href = "#Students", "Students")
                ),
                
                mainPanel(
-                 h1("Considerations by Stakeholder")
+                 h1("Considerations by Stakeholder"),
+                 br(),
+                 h2(id ="schoolPolicies", "School Policies"),
+                 tableOutput("sp"),
+                 h2(id = "Parents", "Parents"),
+                 h2(id = "Students", "Students")
+                 
                  )
              )
     ),
     
     # Third Tab to provide resources
     tabPanel(
-      "Resources", fluid = TRUE
+      "Resources", fluid = TRUE,
+      sidebarLayout(
+        sidebarPanel(width = 2,
+                     
+                     h4("Table of Contents"),
+                     br(),
+                     a(href = "#policies", "Existing Policies")
+                     
+        ),
+        
+        mainPanel(
+          h1("Considerations by Stakeholder"),
+          br(),
+          h2(id ="policies", "Existing Policies"),
+          
+        ),
+      )
 
     )
   )
@@ -223,7 +250,12 @@ server <- function(input, output) {
   output$covOBMap <- renderUI({
     obMap <-tags$iframe(src="https://arcg.is/0CCOW0", width="600", height="400")
     obMap
-  }) 
+  })
+  
+  output$sp <- renderTable({
+    schoolPol <- read.csv("health graphs.xlsx - Sheet2.csv", check.names = FALSE, encoding = "UTF-8")
+    schoolPol
+  }, bordered = TRUE, striped = TRUE, align = '?', width = '100%')
   
 }
 
