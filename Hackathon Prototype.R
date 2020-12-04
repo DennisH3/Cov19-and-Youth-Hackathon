@@ -1,9 +1,6 @@
 # Task: Create a prototype data visualization for hackathon
 # Author: Dennis Huynh
 
-# Use synthetic data
-# Add a chloropleth (will use voter turn out data, get GeoJSON file)
-
 # Install packages
 #install.packages("tidyverse")
 #install.packages("plotly")
@@ -16,12 +13,12 @@ library(plotly)
 
 # Load data by reading files
 lf <- select(read.csv("LabourForce.csv", check.names = FALSE), c(1, 4:10)) # Labour Force data for 15+, all estimates in percentages for year 2019
-#house <- select(read.csv("Housing.csv", check.names = FALSE), c(1, 3:9)) # All semi-detached houses
-#health <- read.csv("HealthIndicators.csv", check.names = FALSE)
+house <- select(read.csv("Housing.csv", check.names = FALSE), c(1, 3:9)) # All single-detached houses
+health <- read.csv("HealthIndicators.csv", check.names = FALSE)
 
 # Rename the columns
-#setnames(house, colnames(house), c("Sex", "Total - Age", "0-14 years", "15-19 years", "20-24 years",
-#                                   "% 0-14 years", "% 15-19 years", "% 20-24 years"))
+setnames(house, colnames(house), c("Sex", "Total - Age", "0-14 years", "15-19 years", "20-24 years",
+                                   "% 0-14 years", "% 15-19 years", "% 20-24 years"))
 
 # Define UI ----
 ui <- fluidPage(
@@ -175,7 +172,9 @@ ui <- fluidPage(
                    )
                  ),
                  htmlOutput("covOBMap"),
-                 hr()
+                 hr(),
+                 plotlyOutput("House"),
+                 plotlyOutput("Health")
                )
              )
     ),
@@ -189,6 +188,8 @@ ui <- fluidPage(
                  br(),
                  a(href = "#schoolPolicies", "School Policies"),
                  br(),
+                 a(href = "#MitStrat", "Mitigation Strategies"),
+                 br(),
                  a(href = "#Parents", "Parents"),
                  br(),
                  a(href = "#Students", "Students")
@@ -197,8 +198,10 @@ ui <- fluidPage(
                mainPanel(
                  h1("Considerations by Stakeholder"),
                  br(),
-                 h2(id ="schoolPolicies", "School Policies"),
+                 h2(id = "schoolPolicies", "School Policies"),
                  tableOutput("sp"),
+                 h2(id = "MitStrat", "Mitigation Strategies"),
+                 tableOutput("ms"),
                  h2(id = "Parents", "Parents"),
                  h2(id = "Students", "Students")
                  
@@ -214,16 +217,48 @@ ui <- fluidPage(
                      
                      h4("Table of Contents"),
                      br(),
-                     a(href = "#policies", "Existing Policies")
+                     a(href = "#policies", "Existing Policies"),
+                     br(),
+                     a(href = "#data", "Data used in Graphs")
                      
         ),
         
         mainPanel(
-          h1("Considerations by Stakeholder"),
+          h1("Extra Resources"),
           br(),
+          p("Ontario\'s Mental Health Promotion Guideline http://www.health.gov.on.ca/en/pro/programs/publichealth/oph_standards/docs/protocols_guidelines/Mental_Health_Promotion_Guideline_2018.pdf
+https://health-infobase.canada.ca/positive-mental-health
+School Mental Health Ontario's resources for system leaders and educators also highlight what conditions supports mental health for all students. Sadly, many of these protective factors disappeared in the school closures and remote learning
+            https://smho-smso.ca/school-and-system-leaders/learn-more/
+              https://smho-smso.ca/educators/
+              
+              McCreary Centre Society - excellent measures on positive development and adolescent health. Not sure if they are doing any research on COVID. https://www.mcs.bc.ca
+            COMPASS System, University of Waterloo - measures on youth health. Tools are used in Ontario schools.  Not sure if they are doing any research on COVID. https://uwaterloo.ca/compass-system/
+            
+            http://www.bccdc.ca/Health-Info-Site/Documents/Public_health_COVID-19_reports/Impact_School_Closures_COVID-19.pdf
+            https://offordcentre.com/ontario-parent-survey/
+            https://www.cbc.ca/news/canada/british-columbia/children-mental-health-covid-19-report-bc-1.5798568
+            https://rcybc.ca/wp-content/uploads/2020/11/Impact-of-COVID.pdf
+            https://research4kids.ucalgary.ca/covid-in-kids/home
+
+            https://financialpost.com/opinion/opinion-the-she-cession-is-real-and-a-problem-for-everyone
+
+            https://www.edutopia.org/video/keeping-students-engaged-digital-learning
+
+            
+            
+            
+            "),
           h2(id ="policies", "Existing Policies"),
-          
-        ),
+          br(),
+          h2(id = "data", "Data"),
+          h3("Labour Market"),
+          dataTableOutput("Labour"), # data frame for labour force
+          h3("Housing"),
+          dataTableOutput("Housing"), # data frame for housing
+          h3("Health Indicators"),
+          dataTableOutput("HealthI") # data frame for health indicators
+        )
       )
 
     )
@@ -252,11 +287,50 @@ server <- function(input, output) {
     obMap
   })
   
+  # School Policies
   output$sp <- renderTable({
     schoolPol <- read.csv("health graphs.xlsx - Sheet2.csv", check.names = FALSE, encoding = "UTF-8")
     schoolPol
-  }, bordered = TRUE, striped = TRUE, align = '?', width = '100%')
+  }, bordered = TRUE, striped = TRUE, align = '?', width = "200px"
+  )
   
+  # Mitigation Strategies
+  output$ms <- renderTable({
+    mitStrat <- read.csv("health graphs.xlsx - Sheet3.csv", check.names = FALSE, encoding = "UTF-8")
+    mitStrat
+  }, bordered = TRUE, striped = TRUE, align = '?', width = "800px"
+  )
+  
+  output$House <- renderPlotly({
+    fig <- plot_ly(house, x = ~Sex, y = ~`% 0-14 years`, type = 'bar', name = '% 0 to 14 in house')
+    fig <- fig %>% add_trace(y = ~`% 15-19 years`, name = '% 15 to 19 in house')
+    fig <- fig %>% add_trace(y = ~`% 20-24 years`, name = '% 20 to 24 in house')
+    fig <- fig %>% layout(title = "Percent of Youths Living in a Single-Detached Home, 2016", yaxis = list(title = 'Count'), barmode = 'group')
+    
+    fig
+  })
+  
+  output$Health <- renderPlotly({
+    filterHealth <- health %>% filter(Sex == "Both sexes")
+    
+    filterHealth$`Number of Persons` <- as.numeric(filterHealth$`Number of Persons`)
+    
+    fig <- ggplot(filterHealth, aes(x = Geography, y = `Number of Persons`, fill = Indicator)) +
+      geom_col(position = "dodge") +
+      scale_y_continuous(name = "Count", limits = c(0, 5800000)) +
+      labs(title = "Number of Youths (Both Sexes) for All Age Groups Reported on Health Indicators, 2016",
+           x = "Geography",
+           fill = "Indicator")
+    
+    ggplotly(fig, width = 2000, height = 800)
+  })
+ 
+  output$Labour <- renderDataTable({lf})
+  
+  output$Housing <- renderDataTable({house})
+  
+  output$HealthI <- renderDataTable({health})
+   
 }
 
 # Run the app ----
