@@ -15,9 +15,13 @@ library(data.table)
 library(plotly)
 
 # Load data by reading files
+lf <- select(read.csv("LabourForce.csv", check.names = FALSE), c(1, 4:10)) # Labour Force data for 15+, all estimates in percentages for year 2019
+house <- select(read.csv("Housing.csv", check.names = FALSE), c(1, 3:9)) # All semi-detached houses
+health <- read.csv("HealthIndicators.csv", check.names = FALSE)
 
-# Read file for scatter plot
-
+# Rename the columns
+setnames(house, colnames(house), c("Sex", "Total - Age", "0-14 years", "15-19 years", "20-24 years",
+                                   "% 0-14 years", "% 15-19 years", "% 20-24 years"))
 
 # Define UI ----
 ui <- fluidPage(
@@ -87,9 +91,7 @@ ui <- fluidPage(
                  ),
                  
                  h4("Indicators"),
-                 
-                 # Use manipulate widgets to create groups of widgets, to add sub-indicators
-                 
+
                  # Make note of what inactive rate means (ask Klarka for formal definition)
                  checkboxGroupInput("EconI",
                                     label = "Economic Indicator",
@@ -121,6 +123,26 @@ ui <- fluidPage(
                  
                  h4("Sub-populations"),
                  
+                 checkboxGroupInput("VM", 
+                                    label = "Visible Minority",
+                                    choices = list("Total Visible Minority",
+                                                   "Total visible minority population",
+                                                   "South Asian",
+                                                   "Chinese",
+                                                   "Black",
+                                                   "Filipino",
+                                                   "Latin American",
+                                                   "Arab",
+                                                   "Southeast Asian",
+                                                   "West Asian",
+                                                   "Korean",
+                                                   "Japanese",
+                                                   "Visible minority, n.i.e.",
+                                                   "Multiple visible minorities",
+                                                   "Not a visible minority"),
+                                    selected = "Total Visible Minority"
+                 ),
+                 
                  selectizeInput("age", 
                                 label = "Age Group",
                                 choices = list("Total - Age (1-17)",
@@ -137,23 +159,31 @@ ui <- fluidPage(
                                                "Male",
                                                "Female"),
                                 selected = "Total - Sex"
-                 )
+                 ),
+                 width = 2
                ),
                
                mainPanel(
                  h1("Maps"),
                  h4("To filter the data, please select Geography, Age, and Sex first."),
-                 htmlOutput("covEdMap"),
-                 htmlOutput("covCasesMap"),
-                 htmlOutput("covOBMap")
-                 )
+                 fluidRow(
+                   column(width = 8,
+                          htmlOutput("covEdMap")
+                   ),
+                   column(width = 4,
+                          htmlOutput("covCasesMap")
+                   )
+                 ),
+                 htmlOutput("covOBMap"),
+                 tags$hr()
+               )
              )
     ),
     
     # Second Tab
     tabPanel("School Closure Considerations", fluid = TRUE,
              sidebarLayout(
-               sidebarPanel(
+               sidebarPanel(width = 2,
                  
                  
                  
@@ -181,17 +211,17 @@ server <- function(input, output) {
   
   # Output ---------------------------------------------------
   output$covEdMap <- renderUI ({
-    edMap <- tags$iframe(src="https://www.google.com/maps/d/embed?mid=1ViVQD7zRyXUoAxE9wM0qAXmvCpJEiM6H", width="800", height="600")
+    edMap <- tags$iframe(src="https://www.google.com/maps/d/embed?mid=1ViVQD7zRyXUoAxE9wM0qAXmvCpJEiM6H", width="600", height="400")
     edMap
   })
   
   output$covCasesMap <- renderUI({
-    casesMap <- tags$iframe(src="https://arcg.is/0KPGau", width="800", height="600")
+    casesMap <- tags$iframe(src="https://arcg.is/0KPGau", width="600", height="400")
     casesMap
   })
   
   output$covOBMap <- renderUI({
-    obMap <-tags$iframe(src="https://arcg.is/0CCOW0", width="800", height="600")
+    obMap <-tags$iframe(src="https://arcg.is/0CCOW0", width="600", height="400")
     obMap
   }) 
   
